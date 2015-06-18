@@ -1,3 +1,4 @@
+//secret santa function
 var a = ['aaaaa','zzzzz','rrrrr','fffff','ooooo','wwwww','ddddd','ccccc','jjjjj'];
  
 function r(array) {
