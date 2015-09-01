@@ -2,11 +2,12 @@
 var a = ['aaaaa','zzzzz','rrrrr','fffff','ooooo','wwwww','ddddd','ccccc','jjjjj'];
  
 function r(array) {
-    var a,b, p1, p2, i, n, rand,x, final = [];
-    n = array.length;
-    i = 0;
-    a = array.slice(0);
-    b = array.slice(0);
+    var a = array.slice(0),
+        b = array.slice(0)
+        p1, p2,
+        i = 0,
+        n = array.length, 
+        rand,x, final = [];
     while(i<n) {
         p1 = a[0];
         x = b.indexOf(p1);
