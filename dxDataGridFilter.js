@@ -10,94 +10,103 @@
 			<Compare field1="comparisonFunction" field2="comparisonFunction"/>
 		</Parameter>
 */
-function processFilterArray (filterArray) {
-	var startParam 	= '<Parameter>',
-		endParam 	= '</Parameter>';
-	var data = { start:{}, end:{}, compare:{} },
-		conjunction;
+var dataGridFilter = {
+	dateFormatString: null,
+	dateFormatFunc: null,
+	processFilterArray: function(filterArray) {
+		var self = this,
+			startParam 	= '<Parameter>',
+			endParam 	= '</Parameter>';
+		var data = { start:{}, end:{}, compare:{} },
+			conjunction;
 
-	if(!filterArray) {
-		return null;
-	}
-	if(Array.isArray(filterArray[0])) {
-		filterArray.forEach(function(el, index, array) {
-			if(isEven(index)) {
-				if(Array.isArray(el[0])) { 
-					processArray(el, data, conjunction);
+		if(!filterArray) {
+			return null;
+		}
+		if(Array.isArray(filterArray[0])) {
+			filterArray.forEach(function(el, index, array) {
+				if(self.isEven(index)) {
+					if(Array.isArray(el[0])) { 
+						self.processArray(el, data, conjunction);
+					} else {
+						self.processFilter(el, data, conjunction);
+					}
 				} else {
-					processFilter(el, data, conjunction);
+					conjunction = el;
 				}
+			});
+		} else {
+	        self.processFilter(filterArray, data, null);
+	    }
+
+	    //return data;
+		return 	startParam 
+				+ '<Start ' + self.processObjtoXML(data.start) + '/>' 
+				+ '<End ' + self.processObjtoXML(data.end) + '/>'
+				+ '<Compare ' + self.processObjtoXML(data.compare) + '/>' + endParam;
+	},
+
+	/* process individual filter array of the form [field, comparison, value] */
+	processFilter: function (filter, data, conj) {
+		if(Object.prototype.toString.call(filter[2]) === '[object Date]' && this.dateFormatFunc && this.dateFormatString) {
+			filter[2] = this.dateFormatFunc(filter[2], this.dateFormatString);
+		}
+		if(data.start[filter[0]]) {	//if there is already one filter, add a second with a conjunction operator
+			data.end[filter[0]] = filter[2];
+			data.compare[filter[0]] = data.compare[filter[0]].toString().concat(this.conjOperator(conj), this.getComparisonFunc(filter[1]));
+		} else {
+			data.start[filter[0]] = filter[2];
+			data.end[filter[0]] = '';
+			data.compare[filter[0]] = parseInt(this.getComparisonFunc(filter[1])); //first comparison function does not require leading 0
+		}
+	},
+
+	processArray: function (arr, data, conj) {
+		var self = this;
+		arr.forEach(function(el, index, array) {
+			if(self.isEven(index)) {
+				self.processFilter(el, data, conj);
 			} else {
-				conjunction = el;
+				conj = el;
 			}
 		});
-	} else {
-        processFilter(filterArray, data, null);
-    }
+		return;
+	},
 
-    //return data;
-	return 	startParam 
-			+ '<Start ' + processObjtoXML(data.start) + '/>' 
-			+ '<End ' + processObjtoXML(data.end) + '/>'
-			+ '<Compare ' + processObjtoXML(data.compare) + '/>' + endParam;
-}
-
-/* process individual filter array of the form [field, comparison, value] */
-function processFilter(filter, data, conj) {
-	if(data.start[filter[0]]) {
-		data.end[filter[0]] = filter[2];
-		data.compare[filter[0]] = data.compare[filter[0]].concat(conjOperator(conj), getComparisonFunc(filter[1]));
-	} else {
-		data.start[filter[0]] = filter[2];
-		data.end[filter[0]] = '';
-		data.compare[filter[0]] = getComparisonFunc(filter[1]);
-	}
-}
-
-function processArray(arr, data, conj) {
-	arr.forEach(function(el, index, array) {
-		if(isEven(index)) {
-			processFilter(el, data, conj);
-		} else {
-			conj = el;
+	processObjtoXML: function (obj) {
+		var result = '';
+		for (var i in obj) {
+			result += i + '="' + obj[i] + '" ';
 		}
-	});
-	return;
-}
+		return result;
+	},
 
-function processObjtoXML(obj) {
-	var result = '';
-	for (var i in obj) {
-		result += i + '="' + obj[i] + '" ';
-	}
-	return result;
-}
+	/* used to check even index in array for index n */
+	isEven: function (n) {
+		return n == parseFloat(n) && (n % 2 == 0);
+	},
 
-/* used to check even index in array for index n */
-function isEven(n) {
-   return n == parseFloat(n) && (n % 2 == 0);
-}
+	/* comparison function from dxDataGrid translated to web service function codes */
+	getComparisonFunc: function (func) {
+	    switch(func) {
+	        case '=': 			return '01';
+	        case '<>': 			return '09';
+	        case '>': 			return '02';
+	        case '>=': 			return '03';
+	        case '<': 			return '07';
+	        case '<=': 			return '08';
+	        case 'startswith': 	return '10';
+	        case 'contains': 	return '00';
+	        default: 			return '00';
+	    }
+	},
 
-/* comparison function from dxDataGrid translated to web service function codes */
-function getComparisonFunc(func) {
-    switch(func) {
-        case '=': 			return '01';
-        case '<>': 			return '09';
-        case '>': 			return '02';
-        case '>=': 			return '03';
-        case '<': 			return '07';
-        case '<=': 			return '08';
-        case 'startswith': 	return '10';
-        case 'contains': 	return '00';
-        default: 			return '00';
-    }
-}
-
-function conjOperator(op) {
-	var conjCode;
-	switch(op) {
-		case 'and': return '1';
-		case 'or': return '2';
-		default: return '0';
+	conjOperator: function (op) {
+		var conjCode;
+		switch(op) {
+			case 'and': return '1';
+			case 'or': return '2';
+			default: return '0';
+		}
 	}
 }
