@@ -48,16 +48,22 @@ var dataGridFilter = {
 
 	/* process individual filter array of the form [field, comparison, value] */
 	processFilter: function (filter, data, conj) {
+		//converting dates to date format required by web service
 		if(Object.prototype.toString.call(filter[2]) === '[object Date]' && this.dateFormatFunc && this.dateFormatString) {
 			filter[2] = this.dateFormatFunc(filter[2], this.dateFormatString);
 		}
-		if(data.start[filter[0]]) {	//if there is already one filter, add a second with a conjunction operator
+		//if there is already one filter, add a second with a conjunction operator
+		if(data.start[filter[0]]) {
 			data.end[filter[0]] = filter[2];
 			data.compare[filter[0]] = data.compare[filter[0]].toString().concat(this.conjOperator(conj), this.getComparisonFunc(filter[1]));
 		} else {
 			data.start[filter[0]] = filter[2];
 			data.end[filter[0]] = '';
-			data.compare[filter[0]] = parseInt(this.getComparisonFunc(filter[1])); //first comparison function does not require leading 0
+			if(Object.prototype.toString.call(filter[2]) === '[object Number]') {
+				data.compare[filter[0]] = parseInt(this.getComparisonFunc(filter[1])) + '000';	//'000' needed for numeric comparisons (0 conj operator and 00 second comp func)
+			} else {
+				data.compare[filter[0]] = parseInt(this.getComparisonFunc(filter[1])); //first comparison function does not require leading 0
+			}
 		}
 	},
 
@@ -102,11 +108,10 @@ var dataGridFilter = {
 	},
 
 	conjOperator: function (op) {
-		var conjCode;
 		switch(op) {
 			case 'and': return '1';
 			case 'or': return '2';
-			default: return '0';
+			default: return '0'; //none
 		}
 	}
 }
