@@ -1,7 +1,9 @@
 /*	expecting filters in two array forms
 	filter = [field, comparison, value]
-	or [filter, 'and', filter, 'and', filter]
+	or [filter, 'and', filter, 'or', filter]
 	where each 0/even index is a filter array of the first form above
+
+	* when adding filters from scripts using grid.filter(filterArray) be sure to add 'and' as an array element to keep the form outlined above
 
 	Returns an XML string of the form
 		<Parameter>
@@ -39,6 +41,8 @@ var dataGridFilter = {
 	        self.processFilter(filterArray, data, null);
 	    }
 
+	    self.processCompare(data.compare);
+
 	    //return data;
 		return 	startParam 
 				+ '<Start ' + self.processObjtoXML(data.start) + '/>' 
@@ -48,21 +52,31 @@ var dataGridFilter = {
 
 	/* process individual filter array of the form [field, comparison, value] */
 	processFilter: function (filter, data, conj) {
-		//converting dates to date format required by web service
+		var isDate = false;
 		if(Object.prototype.toString.call(filter[2]) === '[object Date]' && this.dateFormatFunc && this.dateFormatString) {
 			filter[2] = this.dateFormatFunc(filter[2], this.dateFormatString);
+			isDate = true;
 		}
-		//if there is already one filter, add a second with a conjunction operator
-		if(data.start[filter[0]]) {
+
+		if(typeof filter[2] === 'boolean') {
+			//trap bools here
+			//change to boolean bit 0/1 ??
+		}
+
+		if(data.start[filter[0]]) {	//if there is already one filter, add a second with a conjunction operator
 			data.end[filter[0]] = filter[2];
-			data.compare[filter[0]] = data.compare[filter[0]].toString().concat(this.conjOperator(conj), this.getComparisonFunc(filter[1]));
+
+			data.compare[filter[0]].conj = this.conjOperator(conj);
+			data.compare[filter[0]].op2 = this.getComparisonFunc(filter[1]);
 		} else {
 			data.start[filter[0]] = filter[2];
 			data.end[filter[0]] = '';
-			if(Object.prototype.toString.call(filter[2]) === '[object Number]') {
-				data.compare[filter[0]] = parseInt(this.getComparisonFunc(filter[1])) + '000';	//'000' needed for numeric comparisons (0 conj operator and 00 second comp func)
-			} else {
-				data.compare[filter[0]] = parseInt(this.getComparisonFunc(filter[1])); //first comparison function does not require leading 0
+
+			data.compare[filter[0]] = { op1: '', op2: '', conj:''};
+			data.compare[filter[0]].op1 = parseInt(this.getComparisonFunc(filter[1]));
+			if(typeof filter[2] === 'number' || isDate) {
+				data.compare[filter[0]].conj = '0';
+				data.compare[filter[0]].op2 = '00';
 			}
 		}
 	},
@@ -77,6 +91,12 @@ var dataGridFilter = {
 			}
 		});
 		return;
+	},
+
+	processCompare: function (compObj) {
+		for (var i in compObj) {
+			compObj[i] = compObj[i].op1 + compObj[i].conj + compObj[i].op2;
+		}
 	},
 
 	processObjtoXML: function (obj) {
@@ -111,7 +131,7 @@ var dataGridFilter = {
 		switch(op) {
 			case 'and': return '1';
 			case 'or': return '2';
-			default: return '0'; //none
+			default: return '0';
 		}
 	}
 }
