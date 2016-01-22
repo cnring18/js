@@ -5,6 +5,10 @@
 
 	* when adding filters from scripts using grid.filter(filterArray) be sure to add 'and' as an array element to keep the form outlined above
 
+	* the dateFormatString is specified for whatever the web service needs
+	* the dateFormatFunc uses the format string to return a formatted string from a js Date
+	* these must be specified in the code using this filter
+
 	Returns an XML string of the form
 		<Parameter>
 			<Start field1="value"1 field2="value2"/>
@@ -43,7 +47,7 @@ var dataGridFilter = {
 
 	    self.processCompare(data.compare);
 
-	    //return data;
+	    //return filter xml string
 		return 	startParam 
 				+ '<Start ' + self.processObjtoXML(data.start) + '/>' 
 				+ '<End ' + self.processObjtoXML(data.end) + '/>'
@@ -52,15 +56,32 @@ var dataGridFilter = {
 
 	/* process individual filter array of the form [field, comparison, value] */
 	processFilter: function (filter, data, conj) {
-		var isDate = false;
-		if(Object.prototype.toString.call(filter[2]) === '[object Date]' && this.dateFormatFunc && this.dateFormatString) {
-			filter[2] = this.dateFormatFunc(filter[2], this.dateFormatString);
-			isDate = true;
+		if(Object.prototype.toString.call(filter[2]) === '[object Date]') {
+			if (this.dateFormatFunc && this.dateFormatString) filter[2] = this.dateFormatFunc(filter[2], this.dateFormatString);
+			
+			if(data.start[filter[0]]) {
+				console.log('filled');
+				data.compare[filter[0]].conj = this.conjOperator(conj);
+				data.end[filter[0]] = this.dateFormatFunc(filter[2], this.dateFormatString);
+				return;
+			} else {
+				if (filter[1] === '<') {
+					data.start[filter[0]] = this.dateFormatFunc(new Date(1753, 0, 1), this.dateFormatString);
+					//data.compare[filter[0]] = { op1: '7', op2: '03', conj:'1'};
+					data.compare[filter[0]] = { op1: '3', op2: '07', conj:'1'};
+					data.end[filter[0]] = this.dateFormatFunc(filter[2], this.dateFormatString);
+					return;
+				} else if (filter[1] === '>=' || filter[1] === '>') {
+					data.start[filter[0]] = this.dateFormatFunc(filter[2], this.dateFormatString);
+					data.compare[filter[0]] = { op1: '3', op2: '08', conj:'1'};
+					data.end[filter[0]] = this.dateFormatFunc(new Date().setFullYear(9999), this.dateFormatString);
+					return;
+				}
+			}
 		}
 
 		if(typeof filter[2] === 'boolean') {
-			//trap bools here
-			//change to boolean bit 0/1 ??
+			(filter[2]) ? filter[2] = 1 : filter[2] = 0;
 		}
 
 		if(data.start[filter[0]]) {	//if there is already one filter, add a second with a conjunction operator
@@ -74,7 +95,7 @@ var dataGridFilter = {
 
 			data.compare[filter[0]] = { op1: '', op2: '', conj:''};
 			data.compare[filter[0]].op1 = parseInt(this.getComparisonFunc(filter[1]));
-			if(typeof filter[2] === 'number' || isDate) {
+			if(typeof filter[2] === 'number') {
 				data.compare[filter[0]].conj = '0';
 				data.compare[filter[0]].op2 = '00';
 			}
