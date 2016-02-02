@@ -1,10 +1,18 @@
 ﻿/*
     Universal validation script for JQM apps
+
     Dependencies: jquery, jquery mobile, StingResource.js
+
     validate([]) - pass in array of jquery form elements
     set 'type' or 'isRequired' using jquery $.data before passing in
     if new 'type' needed, add to validateType object and set validation function
     validateRequired/ validateType check requirements, set error messages using $.data as needed
+    valid object in validate() tracks validity of each element
+    each element has error message removed (if any), then checked, then error message shown if any were set
+    if all valid in valid object, validate() returns true and form can submit in page module
+
+    removeErrorMessages() is called from page modules to clear all error fields for all elements
+
 */
 
 var $pass1, $account1, $email1;     //future: encapsulate these in a validation closure
