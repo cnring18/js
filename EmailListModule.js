@@ -1,9 +1,18 @@
-/* Dependencies: jQuery, Knockout, DevExpress dxList, SendEmailModule.js, Scripts.js, FindWTEmailHistory Web Service, JTMLibrary*/
+/* 
+
+	Dependencies: jQuery, Knockout, DevExpress dxList, SendEmailModule.js, Scripts.js, FindWTEmailHistory Web Service, JTMLibrary
+
+	Module for listing emails for specific user/payment
+	Creates a SendEmailModule that is used to show/send a specific email from the list
+
+*/
+
 
 function EmailListModule() {
 	var emailList, userURI, actionCode, emailID, anyID,
 		listDiv, emailDiv, sendModule, lastEmail, emailListLog, listBackBtn;
 
+	//Two arguments: IDs for the email list div and the show email field (used to show/hide each)
 	EmailListModule.prototype.Init = function (listDivID, emailDivID) {
   		lastEmail = null;
   		listDiv = $(listDivID);
@@ -40,6 +49,7 @@ function EmailListModule() {
 		AdminVM.EmailData = EmailDataStore;
 	}
 
+	//called by each page module after ko bindings have been applied
 	EmailListModule.prototype.BindingsApplied = function () {
         //elements below created only after using knockout template/bindings
         EmailListModule.prototype.ClearList();
@@ -50,10 +60,13 @@ function EmailListModule() {
 			EmailListModule.prototype.ShowEmail(obj);
 		});
 
+		//creating a new email viewing/sending module (in emailDiv)
 		sendModule = new SendEmailModule();
+		//setting up callback functions for the send module
 		sendModule.Init(EmailListModule.prototype.SendEmailReturn, EmailListModule.prototype.EmailBackBtn);
 	}
 
+	//called by page module with any info needed for search (null if N/A)
 	EmailListModule.prototype.SetList = function (user, action, emailId, anyId) {
 		EmailListModule.prototype.ClearList();
 		userURI = user;
@@ -67,6 +80,7 @@ function EmailListModule() {
         //AdminVM.EmailVM.Emails([]);
     }
 
+    //returning from view email div/module
 	EmailListModule.prototype.EmailBackBtn = function () {
 		emailDiv.hide();
 		listBackBtn.show();
@@ -77,6 +91,7 @@ function EmailListModule() {
         lastEmail = null;
 	}
 
+	//returning from send module after successful email send
 	EmailListModule.prototype.SendEmailReturn = function (data) {
     	emailDiv.hide();
     	listBackBtn.show();
@@ -86,6 +101,7 @@ function EmailListModule() {
 		emailList.reload();
 	}
 
+	//opening an email with the send module
 	EmailListModule.prototype.ShowEmail = function (itemObj) {
 		AdminVM.EmailVM.SetEmail(itemObj.itemIndex);
 		sendModule.SetCurEmail(AdminVM.EmailVM.GetEmail());
@@ -96,6 +112,7 @@ function EmailListModule() {
 		emailDiv.show();
 	}
 
+	//loading email history data for the list
 	EmailListModule.prototype.Load = function (loadOptions) {
         var searchData = {};
         searchData.searchFor = '';
