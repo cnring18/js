@@ -15,10 +15,6 @@ function EmailListModule() {
             load: function (loadOptions) {
                 var d = $.Deferred();
                     searchData = EmailListModule.prototype.Load(loadOptions);
-                    searchData.userURI = userURI;
-                    searchData.actionCode = actionCode;
-                    searchData.emailID = emailID;
-                    searchData.anyID = anyID;
 
                 FindWTEmailHistory($.mobile.OLRPMobile.URL, $.mobile.OLRPMobile.Admin.UserGUID, searchData)
                     .done(function (data) {
@@ -105,6 +101,11 @@ function EmailListModule() {
         searchData.searchFor = '';
         searchData.recordNeeded = loadOptions.skip;
         searchData.count = loadOptions.take;
+
+        searchData.userURI = userURI;
+        searchData.actionCode = actionCode;
+        searchData.emailID = emailID;
+        searchData.anyID = anyID;
 
         if (loadOptions.sort) {
             searchData.sortAscending = !loadOptions.sort[0].desc;
