@@ -60,14 +60,12 @@ var dataGridFilter = {
 			if (this.dateFormatFunc && this.dateFormatString) filter[2] = this.dateFormatFunc(filter[2], this.dateFormatString);
 			
 			if(data.start[filter[0]]) {
-				console.log('filled');
 				data.compare[filter[0]].conj = this.conjOperator(conj);
 				data.end[filter[0]] = this.dateFormatFunc(filter[2], this.dateFormatString);
 				return;
 			} else {
 				if (filter[1] === '<') {
 					data.start[filter[0]] = this.dateFormatFunc(new Date(1753, 0, 1), this.dateFormatString);
-					//data.compare[filter[0]] = { op1: '7', op2: '03', conj:'1'};
 					data.compare[filter[0]] = { op1: '3', op2: '07', conj:'1'};
 					data.end[filter[0]] = this.dateFormatFunc(filter[2], this.dateFormatString);
 					return;
