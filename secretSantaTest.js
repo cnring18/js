@@ -19,11 +19,11 @@ function r(array) {
     while(i<n) {
         p1 = a[0];
         x = b.indexOf(p1);
-        do {
+        do {								//random person in the receiving array that is not the person giving
             rand = Math.floor((Math.random() * b.length));
         } while(rand === x)
         p2 = b[rand];
-        finalPairs[p1] = p2;
+        finalPairs[p1] = p2;				//pairing [person giving] with: person receving
         a.splice(0,1);                      //remove first person from giving list (used)
         b.splice(rand,1);                   //remove random (used) person from receiving list
         i++;
