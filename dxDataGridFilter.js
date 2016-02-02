@@ -6,15 +6,16 @@
 	* when adding filters from scripts using grid.filter(filterArray) be sure to add 'and' as an array element to keep the form outlined above
 
 	* the dateFormatString is specified for whatever the web service needs
-	* the dateFormatFunc uses the format string to return a formatted string from a js Date
+	* the dateFormatFunc uses the format string to return a formatted string from a js Date (currently using date.format.js)
 	* these must be specified in the code using this filter
 
 	Returns an XML string of the form
 		<Parameter>
-			<Start field1="value"1 field2="value2"/>
-			<End field1="value1" field2="value2"/>
-			<Compare field1="comparisonFunction" field2="comparisonFunction"/>
+			<Start field1="value"1 field2="value2" .../>
+			<End field1="value1" field2="value2" .../>
+			<Compare field1="comparisonFunction" field2="comparisonFunction" .../>
 		</Parameter>
+	where fields are JSON properties from the web service
 */
 var dataGridFilter = {
 	dateFormatString: null,
@@ -32,6 +33,7 @@ var dataGridFilter = {
 		if(Array.isArray(filterArray[0])) {
 			filterArray.forEach(function(el, index, array) {
 				if(self.isEven(index)) {
+					//some date arrays two levels deep
 					if(Array.isArray(el[0])) { 
 						self.processArray(el, data, conjunction);
 					} else {
@@ -42,6 +44,7 @@ var dataGridFilter = {
 				}
 			});
 		} else {
+			//single filter in array form
 	        self.processFilter(filterArray, data, null);
 	    }
 
@@ -56,6 +59,7 @@ var dataGridFilter = {
 
 	/* process individual filter array of the form [field, comparison, value] */
 	processFilter: function (filter, data, conj) {
+		//date's have special filter logic for web service filter
 		if(Object.prototype.toString.call(filter[2]) === '[object Date]') {
 			if (this.dateFormatFunc && this.dateFormatString) filter[2] = this.dateFormatFunc(filter[2], this.dateFormatString);
 			
@@ -78,6 +82,7 @@ var dataGridFilter = {
 			}
 		}
 
+		//boolean filters change to 1/0 value
 		if(typeof filter[2] === 'boolean') {
 			(filter[2]) ? filter[2] = 1 : filter[2] = 0;
 		}
@@ -93,6 +98,7 @@ var dataGridFilter = {
 
 			data.compare[filter[0]] = { op1: '', op2: '', conj:''};
 			data.compare[filter[0]].op1 = parseInt(this.getComparisonFunc(filter[1]));
+			//number field filter requires this second comparison function and conjunction operator
 			if(typeof filter[2] === 'number') {
 				data.compare[filter[0]].conj = '0';
 				data.compare[filter[0]].op2 = '00';
@@ -112,6 +118,7 @@ var dataGridFilter = {
 		return;
 	},
 
+	//combining compare functions with conjuction operators for each field (strings)
 	processCompare: function (compObj) {
 		for (var i in compObj) {
 			compObj[i] = compObj[i].op1 + compObj[i].conj + compObj[i].op2;
@@ -146,6 +153,7 @@ var dataGridFilter = {
 	    }
 	},
 
+	/* conjunction operator from dxDataGrid translated to web service codes */
 	conjOperator: function (op) {
 		switch(op) {
 			case 'and': return '1';
