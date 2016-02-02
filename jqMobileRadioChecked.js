@@ -1,3 +1,8 @@
+/*
+	Knockout binding for jQuery Mobile checkbox/radio buttons
+	Automatically refreshes widgets with new values
+*/
+
 /* Dependencies: jquery, jquery mobile, knockout */
 ko.bindingHandlers.jqMobileRadioChecked = {
 	init: function (element, valueAccessor, allBindingsAccessor, data, context) {
