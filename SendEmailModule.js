@@ -1,10 +1,4 @@
-/* 
-	Dependencies: Validation.js, Knockout
-
-	Send/View individual email module using email template with Knockout
-	Can be used on its own with single email data, does not need EmailListModule
-
-*/
+/* Dependencies: Validation.js */
 
 function SendEmailModule() {
 	var emailInputs, sendEmailLog, sendEmailBtn,
@@ -26,7 +20,6 @@ function SendEmailModule() {
 		$.data(emailInputs[0], 'isRequired', 'true');
 		$.data(emailInputs[1], 'type', 'email');
 
-		//focus/blur events for each element used for real time validation
 		$.each(emailInputs, function () {
             var $el = this;
             $el.on('focus', function () {
@@ -60,12 +53,11 @@ function SendEmailModule() {
         })
 	}
 
-	//setting current email to be viewed with knockout bindings
 	SendEmailModule.prototype.SetCurEmail = function (data) {
 		curEmailData = data;
+		$('#ViewEmailBody a').attr('target','_blank'); //open email links in new tab, JQM doesn't like these
 	}
 
-	//validating inputs
 	SendEmailModule.prototype.Validate = function () {
 		submitEmailValidate = true;
 		if (validate(emailInputs)) {
@@ -75,7 +67,6 @@ function SendEmailModule() {
 		}
 	}
 
-	// resending current open email
 	SendEmailModule.prototype.SendEmail = function () {
 		var emailData = {};
 		emailData.userURI = curEmailData.UserURI;
@@ -90,7 +81,6 @@ function SendEmailModule() {
 			.fail(JTMLibrary.AjaxError);;
 	}
 
-	//send email web service return, returns to email list on success
 	SendEmailModule.prototype.SendEmailReturn = function (data) {
 		$.mobile.silentScroll(0);
         if (data.d.Fatal) {
