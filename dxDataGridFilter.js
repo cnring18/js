@@ -135,7 +135,7 @@ var dataGridFilter = {
 
 	/* used to check even index in array for index n */
 	isEven: function (n) {
-		return n == parseFloat(n) && (n % 2 == 0);
+		return n === parseFloat(n) && (n % 2 === 0);
 	},
 
 	/* comparison function from dxDataGrid translated to web service function codes */
